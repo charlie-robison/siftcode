@@ -1,0 +1,358 @@
+/* ── Layout ── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #1e1e1e;
+  color: #cccccc;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #404040;
+}
+
+.app-header h1 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+  -webkit-app-region: drag;
+}
+
+.app-header .dir-path {
+  font-size: 12px;
+  color: #888;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  margin-left: 12px;
+  font-weight: 400;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  min-width: 180px;
+  background: #252526;
+  border-right: 1px solid #404040;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.repo-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid #404040;
+  background: #2a2a2a;
+}
+
+.repo-folder-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.repo-header-text {
+  overflow: hidden;
+}
+
+.repo-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repo-path {
+  display: block;
+  font-size: 10px;
+  color: #555;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.file-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  padding: 12px 12px 8px;
+  font-weight: 600;
+}
+
+.show-dismissed-btn {
+  font-size: 10px;
+  color: #007acc;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.show-dismissed-btn:hover {
+  background: #333;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
+}
+
+.file-item:hover {
+  background: #2a2d2e;
+}
+
+.file-item.selected {
+  background: #37373d;
+  border-left-color: #007acc;
+}
+
+.file-item .file-icon {
+  margin-right: 8px;
+  font-size: 11px;
+}
+
+.file-item .file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-item .file-count {
+  font-size: 11px;
+  color: #888;
+  margin-left: 8px;
+}
+
+.file-dismiss-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-left: 4px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.file-item:hover .file-dismiss-btn {
+  opacity: 1;
+}
+
+.file-dismiss-btn:hover {
+  color: #f44336;
+  background: #3a1b1b;
+}
+
+/* ── Editor Area ── */
+.editor-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-container {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #2d2d2d;
+  border-top: 1px solid #404040;
+}
+
+.toolbar-left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.toolbar-stats {
+  font-size: 12px;
+  color: #888;
+}
+
+.toolbar-stats .stat-accepted { color: #4caf50; }
+.toolbar-stats .stat-rejected { color: #f44336; }
+
+/* ── Buttons ── */
+.btn {
+  padding: 5px 14px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #333;
+  color: #ccc;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.btn:hover {
+  background: #444;
+  border-color: #777;
+}
+
+.btn-accept {
+  background: #1b3a1b;
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+.btn-accept:hover {
+  background: #264d26;
+}
+
+.btn-reject {
+  background: #3a1b1b;
+  border-color: #f44336;
+  color: #f44336;
+}
+
+.btn-reject:hover {
+  background: #4d2626;
+}
+
+.btn-apply {
+  background: #007acc;
+  border-color: #007acc;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-apply:hover {
+  background: #1a8ad4;
+}
+
+.btn-open {
+  background: transparent;
+  border-color: #555;
+  color: #aaa;
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+/* ── Empty State ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  gap: 16px;
+}
+
+.empty-state h2 {
+  font-size: 20px;
+  font-weight: 400;
+  color: #888;
+}
+
+.empty-state p {
+  font-size: 13px;
+  max-width: 400px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Monaco Decoration Classes ── */
+
+/* Deletion lines - accepted (will be removed) */
+.line-del-accepted {
+  background: rgba(255, 0, 0, 0.15) !important;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Deletion lines - rejected (will be kept) */
+.line-del-rejected {
+  background: rgba(100, 100, 100, 0.1) !important;
+}
+
+/* Addition lines - accepted (will be added) */
+.line-add-accepted {
+  background: rgba(0, 255, 0, 0.15) !important;
+}
+
+/* Addition lines - rejected (won't be added) */
+.line-add-rejected {
+  background: rgba(100, 100, 100, 0.1) !important;
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+/* Glyph margin icons */
+.glyph-check {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%234caf50'/%3E%3Cpath d='M5 8.5l2 2 4-4.5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center center / 14px 14px no-repeat !important;
+  cursor: pointer !important;
+}
+
+.glyph-cross {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23f44336'/%3E%3Cpath d='M5.5 5.5l5 5M10.5 5.5l-5 5' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center center / 14px 14px no-repeat !important;
+  cursor: pointer !important;
+}
+
+/* Loading spinner */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  font-size: 14px;
+}

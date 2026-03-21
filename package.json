@@ -1,0 +1,23 @@
+{
+  "name": "deslop-desktop",
+  "version": "0.1.0",
+  "description": "Stop accepting AI slop. Review every line.",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "vite build",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "electron": "^35.1.5",
+    "vite": "^6.3.5",
+    "wait-on": "^8.0.3"
+  }
+}
