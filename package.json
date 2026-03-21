@@ -6,7 +6,31 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "vite build",
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "vite build && electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.siftcode.app",
+    "productName": "siftcode",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": ["dmg"]
+    },
+    "dmg": {
+      "title": "siftcode",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -17,6 +41,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "concurrently": "^9.1.2",
     "electron": "^35.1.5",
+    "electron-builder": "^26.8.1",
     "vite": "^6.3.5",
     "wait-on": "^8.0.3"
   },
@@ -24,11 +49,7 @@
     "type": "git",
     "url": "git+https://github.com/charlie-robison/siftcode.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/charlie-robison/siftcode/issues"
-  },
+  "author": "charlie-robison",
+  "license": "MIT",
   "homepage": "https://github.com/charlie-robison/siftcode#readme"
 }
