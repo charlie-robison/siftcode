@@ -15,7 +15,7 @@ deslop gives you a purpose-built interface for exactly one thing: deciding which
 ## How It Works
 
 ```
-1. Run your coding agent normally (Claude Code, Cursor, etc.)
+1. Run your coding agent normally (Claude Code, Codex, Cursor, etc.)
    → Agent edits files in your repo
 
 2. Open deslop
