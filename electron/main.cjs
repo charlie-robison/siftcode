@@ -35,54 +35,27 @@ function createWindow() {
   }
 }
 
-// ── Helpers ──
+// ── Git IPC Handlers ──
 
-function findGitRepos(dir) {
-  const repos = [];
+ipcMain.handle('git:getCurrentDir', () => currentDir);
 
-  // Check if dir itself is a git repo
-  try {
-    const root = execSync('git rev-parse --show-toplevel', {
-      encoding: 'utf8', cwd: dir, stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
-    repos.push(root);
-  } catch {
-    // Not a git repo — scan one level deep for repos
-    try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-        const subdir = path.join(dir, entry.name);
-        try {
-          const root = execSync('git rev-parse --show-toplevel', {
-            encoding: 'utf8', cwd: subdir, stdio: ['pipe', 'pipe', 'pipe'],
-          }).trim();
-          if (!repos.includes(root)) repos.push(root);
-        } catch {}
-      }
-    } catch {}
-  }
-
-  return repos;
-}
-
-function getDiffForRepo(repoRoot) {
+ipcMain.handle('git:getDiff', () => {
   let diff = '';
   try {
     diff = execSync('git diff', {
-      encoding: 'utf8', cwd: repoRoot, maxBuffer: 50 * 1024 * 1024,
+      encoding: 'utf8', cwd: currentDir, maxBuffer: 50 * 1024 * 1024,
     });
   } catch {}
 
   // Include untracked files
   try {
     const untracked = execSync('git ls-files --others --exclude-standard', {
-      encoding: 'utf8', cwd: repoRoot,
+      encoding: 'utf8', cwd: currentDir,
     }).trim();
     if (untracked) {
       for (const filePath of untracked.split('\n')) {
         try {
-          const fullPath = path.resolve(repoRoot, filePath);
+          const fullPath = path.resolve(currentDir, filePath);
           const content = fs.readFileSync(fullPath, 'utf8');
           const lines = content.split('\n');
           diff += `\ndiff --git a/${filePath} b/${filePath}\nnew file mode 100644\n--- /dev/null\n+++ b/${filePath}\n@@ -0,0 +1,${lines.length} @@\n`;
@@ -93,43 +66,21 @@ function getDiffForRepo(repoRoot) {
   } catch {}
 
   return diff;
-}
-
-// ── Git IPC Handlers ──
-
-ipcMain.handle('git:getCurrentDir', () => currentDir);
-
-ipcMain.handle('git:getDiffs', () => {
-  const repos = findGitRepos(currentDir);
-  const results = [];
-
-  for (const repoRoot of repos) {
-    const diff = getDiffForRepo(repoRoot);
-    if (diff.trim()) {
-      results.push({
-        repoRoot,
-        repoName: path.basename(repoRoot),
-        diff,
-      });
-    }
-  }
-
-  return results;
 });
 
-ipcMain.handle('git:getOriginal', (_event, { filePath, repoRoot }) => {
+ipcMain.handle('git:getOriginal', (_event, filePath) => {
   try {
     return execSync(`git show HEAD:${filePath}`, {
-      encoding: 'utf8', cwd: repoRoot, maxBuffer: 50 * 1024 * 1024,
+      encoding: 'utf8', cwd: currentDir, maxBuffer: 50 * 1024 * 1024,
     });
   } catch {
     return '';
   }
 });
 
-ipcMain.handle('git:applyFile', (_event, { filePath, content, repoRoot }) => {
+ipcMain.handle('git:applyFile', (_event, { filePath, content }) => {
   try {
-    const fullPath = path.resolve(repoRoot, filePath);
+    const fullPath = path.resolve(currentDir, filePath);
     fs.writeFileSync(fullPath, content);
     return { success: true };
   } catch (err) {
