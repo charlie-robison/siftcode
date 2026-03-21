@@ -1,0 +1,33 @@
+<idea-plugin>
+    <id>com.siftcode</id>
+    <name>siftcode</name>
+    <version>0.1.0</version>
+    <vendor>charlie-robison</vendor>
+
+    <description><![CDATA[
+    Sift through AI code changes. Review every line.
+    Line-by-line code review for AI-generated changes.
+    Works with any coding agent — Claude Code, Codex, Cursor, Copilot, aider, etc.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+
+    <actions>
+        <action id="siftcode.ReviewChanges"
+                class="com.siftcode.ReviewChangesAction"
+                text="Review Changes"
+                description="Review AI-generated code changes line by line"
+                icon="AllIcons.Actions.Diff">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="siftcode"
+                    anchor="bottom"
+                    factoryClass="com.siftcode.SiftcodeToolWindowFactory"
+                    icon="AllIcons.Actions.Diff"/>
+    </extensions>
+</idea-plugin>
