@@ -1,8 +1,8 @@
-export function parseDiff(raw) {
+export function parseDiff(raw, actionOffset = 0) {
   const files = [];
   let currentFile = null;
   let currentHunk = null;
-  let actionIndex = 0;
+  let actionIndex = actionOffset;
 
   const lines = raw.split('\n');
 
@@ -50,7 +50,7 @@ export function parseDiff(raw) {
     }
   }
 
-  return { files, totalActions: actionIndex };
+  return { files, totalActions: actionIndex - actionOffset };
 }
 
 export function buildUnifiedDoc(originalContent, hunks) {

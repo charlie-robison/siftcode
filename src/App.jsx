@@ -14,6 +14,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [totalActions, setTotalActions] = useState(0);
   const [dismissedFiles, setDismissedFiles] = useState(new Set());
+  const [repos, setRepos] = useState([]);
 
   const loadDiff = useCallback(async () => {
     setLoading(true);
@@ -21,9 +22,11 @@ export default function App() {
     setCurrentDir(dir);
     window.siftcode.updateTitle(dir);
 
-    const raw = await window.siftcode.getDiff();
-    if (!raw.trim()) {
+    const repoResults = await window.siftcode.getDiffs();
+
+    if (!repoResults || repoResults.length === 0) {
       setFiles([]);
+      setRepos([]);
       setTotalActions(0);
       setDecisions({});
       setOriginals({});
@@ -31,23 +34,39 @@ export default function App() {
       return;
     }
 
-    const { files: parsed, totalActions: total } = parseDiff(raw);
+    setRepos(repoResults.map(r => ({ repoRoot: r.repoRoot, repoName: r.repoName })));
+
+    // Parse each repo's diff and tag files with repoRoot
+    let allFiles = [];
+    let actionOffset = 0;
+
+    for (const repo of repoResults) {
+      const { files: parsed, totalActions: repoActions } = parseDiff(repo.diff, actionOffset);
+      for (const file of parsed) {
+        file.repoRoot = repo.repoRoot;
+        file.repoName = repo.repoName;
+      }
+      allFiles = allFiles.concat(parsed);
+      actionOffset += repoActions;
+    }
 
     const decs = {};
-    for (let i = 0; i < total; i++) {
+    for (let i = 0; i < actionOffset; i++) {
       decs[i] = 'accept';
     }
     setDecisions(decs);
-    setTotalActions(total);
+    setTotalActions(actionOffset);
     setDismissedFiles(new Set());
 
+    // Load originals from each file's repo
     const origs = {};
-    for (const file of parsed) {
-      origs[file.path] = await window.siftcode.getOriginal(file.path);
+    for (const file of allFiles) {
+      const key = `${file.repoRoot}:${file.path}`;
+      origs[key] = await window.siftcode.getOriginal(file.path, file.repoRoot);
     }
     setOriginals(origs);
 
-    setFiles(parsed);
+    setFiles(allFiles);
     setSelectedFile(0);
     setLoading(false);
   }, []);
@@ -56,12 +75,11 @@ export default function App() {
     loadDiff();
   }, [loadDiff]);
 
-  // Visible files = not dismissed
-  const visibleFiles = files.filter(f => !dismissedFiles.has(f.path));
-
-  // Map visible index to actual file
+  const visibleFiles = files.filter(f => !dismissedFiles.has(`${f.repoRoot}:${f.path}`));
   const currentFile = visibleFiles[selectedFile] || null;
-  const currentOriginal = currentFile ? originals[currentFile.path] || '' : '';
+  const currentOriginal = currentFile
+    ? originals[`${currentFile.repoRoot}:${currentFile.path}`] || ''
+    : '';
 
   function toggleLine(actionIndex) {
     setDecisions(prev => ({
@@ -88,7 +106,6 @@ export default function App() {
 
   function acceptFileAndDismiss() {
     if (!currentFile) return;
-    // Accept all lines in this file
     setDecisions(prev => {
       const next = { ...prev };
       for (const hunk of currentFile.hunks) {
@@ -98,13 +115,11 @@ export default function App() {
       }
       return next;
     });
-    // Dismiss the file
-    dismissFile(currentFile.path);
+    dismissFile(currentFile);
   }
 
   function rejectFileAndDismiss() {
     if (!currentFile) return;
-    // Reject all lines in this file
     setDecisions(prev => {
       const next = { ...prev };
       for (const hunk of currentFile.hunks) {
@@ -114,17 +129,17 @@ export default function App() {
       }
       return next;
     });
-    dismissFile(currentFile.path);
+    dismissFile(currentFile);
   }
 
-  function dismissFile(filePath) {
+  function dismissFile(file) {
+    const key = `${file.repoRoot}:${file.path}`;
     setDismissedFiles(prev => {
       const next = new Set(prev);
-      next.add(filePath);
+      next.add(key);
       return next;
     });
-    // Move selection to next visible file
-    const remaining = visibleFiles.filter(f => f.path !== filePath);
+    const remaining = visibleFiles.filter(f => `${f.repoRoot}:${f.path}` !== key);
     if (remaining.length === 0) {
       setSelectedFile(0);
     } else if (selectedFile >= remaining.length) {
@@ -138,9 +153,9 @@ export default function App() {
 
   async function apply() {
     for (const file of files) {
-      const original = originals[file.path];
+      const original = originals[`${file.repoRoot}:${file.path}`] || '';
       const content = reconstructFile(original, file.hunks, decisions);
-      await window.siftcode.applyFile(file.path, content);
+      await window.siftcode.applyFile(file.path, content, file.repoRoot);
     }
     await loadDiff();
   }
@@ -153,7 +168,6 @@ export default function App() {
     }
   }
 
-  // Compute stats
   let accepted = 0, rejected = 0;
   for (const val of Object.values(decisions)) {
     if (val === 'accept') accepted++;
@@ -202,9 +216,10 @@ export default function App() {
               selectedIndex={selectedFile}
               onSelect={setSelectedFile}
               repoDir={currentDir}
+              repos={repos}
               dismissedCount={dismissedFiles.size}
               onUndismiss={undismissAll}
-              onDismiss={(filePath) => dismissFile(filePath)}
+              onDismiss={(file) => dismissFile(file)}
             />
             <div className="editor-area">
               <DiffView

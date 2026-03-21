@@ -98,6 +98,33 @@
   overflow-y: auto;
 }
 
+.repo-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.repo-group-icon {
+  font-size: 14px;
+}
+
+.repo-group-name {
+  flex: 1;
+}
+
+.repo-group-count {
+  font-size: 10px;
+  color: #888;
+}
+
+.file-item-nested {
+  padding-left: 24px;
+}
+
 .sidebar-title {
   display: flex;
   align-items: center;
