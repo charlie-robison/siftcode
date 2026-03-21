@@ -99,6 +99,7 @@ For staged changes, you can modify the source to use `git diff --cached`.
 deslop works with any tool that edits files in a git repo:
 
 - **Claude Code** (CLI)
+- **Codex** (OpenAI)
 - **Cursor**
 - **GitHub Copilot**
 - **Windsurf**
