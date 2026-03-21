@@ -1,0 +1,45 @@
+{
+  "name": "siftcode",
+  "displayName": "siftcode",
+  "description": "Sift through AI code changes. Review every line.",
+  "version": "0.1.0",
+  "publisher": "charlie-robison",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      { "command": "siftcode.startReview", "title": "Review Changes", "category": "siftcode", "icon": "$(checklist)" },
+      { "command": "siftcode.refresh", "title": "Refresh", "category": "siftcode", "icon": "$(refresh)" },
+      { "command": "siftcode.acceptAll", "title": "Accept All", "category": "siftcode", "icon": "$(check-all)" },
+      { "command": "siftcode.rejectAll", "title": "Reject All", "category": "siftcode", "icon": "$(close-all)" },
+      { "command": "siftcode.apply", "title": "Apply Changes", "category": "siftcode", "icon": "$(save-all)" }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "siftcode-sidebar",
+          "title": "siftcode",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "siftcode-sidebar": [
+        {
+          "id": "siftcode-files",
+          "name": "Changed Files"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        { "command": "siftcode.startReview", "when": "view == siftcode-files", "group": "navigation" },
+        { "command": "siftcode.refresh", "when": "view == siftcode-files", "group": "navigation" }
+      ]
+    }
+  }
+}
