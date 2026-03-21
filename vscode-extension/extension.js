@@ -77,27 +77,27 @@ function activate(context) {
         treeProvider.setFiles(files, decisions);
         updatePanel();
       },
-      onAcceptFile: () => {
-        const currentFile = getCurrentPanelFile();
-        if (!currentFile) return;
-        for (const hunk of currentFile.hunks) {
+      onAcceptFile: (filePath) => {
+        const targetFile = files.find(f => f.path === filePath);
+        if (!targetFile) return;
+        for (const hunk of targetFile.hunks) {
           for (const line of hunk.lines) {
             if (line.actionIndex !== undefined) decisions[line.actionIndex] = 'accept';
           }
         }
-        dismissedFiles.add(currentFile.path);
+        dismissedFiles.add(targetFile.path);
         treeProvider.setFiles(files, decisions);
         updatePanel();
       },
-      onRejectFile: () => {
-        const currentFile = getCurrentPanelFile();
-        if (!currentFile) return;
-        for (const hunk of currentFile.hunks) {
+      onRejectFile: (filePath) => {
+        const targetFile = files.find(f => f.path === filePath);
+        if (!targetFile) return;
+        for (const hunk of targetFile.hunks) {
           for (const line of hunk.lines) {
             if (line.actionIndex !== undefined) decisions[line.actionIndex] = 'reject';
           }
         }
-        dismissedFiles.add(currentFile.path);
+        dismissedFiles.add(targetFile.path);
         treeProvider.setFiles(files, decisions);
         updatePanel();
       },

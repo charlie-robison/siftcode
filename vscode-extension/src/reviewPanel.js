@@ -28,10 +28,10 @@ class ReviewPanel {
           if (this._onToggle) this._onToggle(msg.actionIndex);
           break;
         case 'acceptFile':
-          if (this._onAcceptFile) this._onAcceptFile();
+          if (this._onAcceptFile) this._onAcceptFile(this._selectedFile);
           break;
         case 'rejectFile':
-          if (this._onRejectFile) this._onRejectFile();
+          if (this._onRejectFile) this._onRejectFile(this._selectedFile);
           break;
         case 'acceptAll':
           if (this._onAcceptAll) this._onAcceptAll();
