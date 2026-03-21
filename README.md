@@ -2,7 +2,7 @@
 
 **Sift through AI code changes. Review every line.**
 
-siftcode is a desktop code audit tool that lets you review AI-generated code changes line by line before they reach production. It works with any coding agent (Claude Code, Cursor, Copilot, aider, etc.) and any editor — it reads your git diff and gives you a clean UI to accept or reject each individual line.
+siftcode is a desktop code audit tool that lets you review AI-generated code changes line by line before they reach production. It works with any coding agent (Claude Code, Codex, Copilot, aider, etc.) and any editor — it reads your git diff and gives you a clean UI to accept or reject each individual line.
 
 This is not an IDE. It's a quality gate. Your coding agent does the work, siftcode lets you verify it.
 
