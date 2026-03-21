@@ -27,6 +27,6 @@ kotlin {
 tasks {
     patchPluginXml {
         sinceBuild.set("241")
-        untilBuild.set("252.*")
+        untilBuild.set("253.*")
     }
 }
