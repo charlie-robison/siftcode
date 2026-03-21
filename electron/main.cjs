@@ -56,11 +56,32 @@ ipcMain.handle('git:getRepoRoot', () => {
 ipcMain.handle('git:getDiff', (_event, options = {}) => {
   try {
     const args = options.staged ? '--cached' : '';
-    return execSync(`git diff ${args}`, {
+    let diff = execSync(`git diff ${args}`, {
       encoding: 'utf8',
       cwd: currentDir,
       maxBuffer: 50 * 1024 * 1024,
     });
+
+    // Also include untracked files as synthetic diffs
+    try {
+      const untracked = execSync('git ls-files --others --exclude-standard', {
+        encoding: 'utf8',
+        cwd: currentDir,
+      }).trim();
+      if (untracked) {
+        for (const filePath of untracked.split('\n')) {
+          try {
+            const fullPath = path.resolve(currentDir, filePath);
+            const content = fs.readFileSync(fullPath, 'utf8');
+            const lines = content.split('\n');
+            diff += `\ndiff --git a/${filePath} b/${filePath}\nnew file mode 100644\n--- /dev/null\n+++ b/${filePath}\n@@ -0,0 +1,${lines.length} @@\n`;
+            diff += lines.map(l => `+${l}`).join('\n') + '\n';
+          } catch {}
+        }
+      }
+    } catch {}
+
+    return diff;
   } catch {
     return '';
   }
