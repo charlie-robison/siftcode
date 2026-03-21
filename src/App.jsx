@@ -17,11 +17,11 @@ export default function App() {
 
   const loadDiff = useCallback(async () => {
     setLoading(true);
-    const dir = await window.deslop.getCurrentDir();
+    const dir = await window.siftcode.getCurrentDir();
     setCurrentDir(dir);
-    window.deslop.updateTitle(dir);
+    window.siftcode.updateTitle(dir);
 
-    const raw = await window.deslop.getDiff();
+    const raw = await window.siftcode.getDiff();
     if (!raw.trim()) {
       setFiles([]);
       setTotalActions(0);
@@ -43,7 +43,7 @@ export default function App() {
 
     const origs = {};
     for (const file of parsed) {
-      origs[file.path] = await window.deslop.getOriginal(file.path);
+      origs[file.path] = await window.siftcode.getOriginal(file.path);
     }
     setOriginals(origs);
 
@@ -140,13 +140,13 @@ export default function App() {
     for (const file of files) {
       const original = originals[file.path];
       const content = reconstructFile(original, file.hunks, decisions);
-      await window.deslop.applyFile(file.path, content);
+      await window.siftcode.applyFile(file.path, content);
     }
     await loadDiff();
   }
 
   async function openFolder() {
-    const dir = await window.deslop.openFolder();
+    const dir = await window.siftcode.openFolder();
     if (dir) {
       setCurrentDir(dir);
       await loadDiff();
@@ -164,7 +164,7 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <h1>deslop</h1>
+          <h1>siftcode</h1>
           <span className="dir-path" title={currentDir}>{currentDir}</span>
         </div>
         <div className="header-actions">

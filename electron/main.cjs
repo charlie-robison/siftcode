@@ -18,12 +18,12 @@ function createWindow() {
       nodeIntegration: false,
     },
     backgroundColor: '#1e1e1e',
-    title: `deslop — ${currentDir}`,
+    title: `siftcode — ${currentDir}`,
   });
 
   // Update title when dir changes
   ipcMain.on('update-title', (_event, dir) => {
-    mainWindow.setTitle(`deslop — ${dir}`);
+    mainWindow.setTitle(`siftcode — ${dir}`);
   });
 
   // Dev: load Vite server. Prod: load built files.

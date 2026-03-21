@@ -1,7 +1,7 @@
 {
-  "name": "deslop-desktop",
+  "name": "siftcode",
   "version": "0.1.0",
-  "description": "Stop accepting AI slop. Review every line.",
+  "description": "Sift through AI code changes. Review every line.",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
@@ -19,5 +19,16 @@
     "electron": "^35.1.5",
     "vite": "^6.3.5",
     "wait-on": "^8.0.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charlie-robison/siftcode.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/charlie-robison/siftcode/issues"
+  },
+  "homepage": "https://github.com/charlie-robison/siftcode#readme"
 }

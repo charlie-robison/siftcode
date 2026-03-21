@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('deslop', {
+contextBridge.exposeInMainWorld('siftcode', {
   getCurrentDir: () => ipcRenderer.invoke('git:getCurrentDir'),
   getRepoRoot: () => ipcRenderer.invoke('git:getRepoRoot'),
   getDiff: (options) => ipcRenderer.invoke('git:getDiff', options || {}),
