@@ -146,6 +146,17 @@ export default function App() {
     }
   }
 
+  function closeFolder() {
+    setFiles([]);
+    setDecisions({});
+    setOriginals({});
+    setTotalActions(0);
+    setDismissedFiles(new Set());
+    setSelectedFile(0);
+    setCurrentDir('');
+    window.siftcode.updateTitle('siftcode');
+  }
+
   let accepted = 0, rejected = 0;
   for (const val of Object.values(decisions)) {
     if (val === 'accept') accepted++;
@@ -197,6 +208,7 @@ export default function App() {
               dismissedCount={dismissedFiles.size}
               onUndismiss={undismissAll}
               onDismiss={(filePath) => dismissFile(filePath)}
+              onCloseFolder={closeFolder}
             />
             <div className="editor-area">
               <DiffView

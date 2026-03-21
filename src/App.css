@@ -68,6 +68,28 @@
   flex-shrink: 0;
 }
 
+.repo-close-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.repo-header:hover .repo-close-btn {
+  opacity: 1;
+}
+
+.repo-close-btn:hover {
+  color: #f44336;
+  background: #3a1b1b;
+}
+
 .repo-header-text {
   overflow: hidden;
 }

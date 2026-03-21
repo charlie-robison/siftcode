@@ -1,4 +1,4 @@
-export default function FileList({ files, decisions, selectedIndex, onSelect, repoDir, dismissedCount, onUndismiss, onDismiss }) {
+export default function FileList({ files, decisions, selectedIndex, onSelect, repoDir, dismissedCount, onUndismiss, onDismiss, onCloseFolder }) {
   const repoName = repoDir ? repoDir.split('/').pop() : '';
 
   return (
@@ -9,6 +9,13 @@ export default function FileList({ files, decisions, selectedIndex, onSelect, re
           <span className="repo-name">{repoName}</span>
           <span className="repo-path">{repoDir}</span>
         </div>
+        <button
+          className="repo-close-btn"
+          onClick={onCloseFolder}
+          title="Close folder"
+        >
+          ✕
+        </button>
       </div>
 
       <div className="sidebar-title">
