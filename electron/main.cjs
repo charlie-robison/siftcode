@@ -4,7 +4,7 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 
 let mainWindow;
-let currentDir = process.cwd();
+let directories = []; // multiple open directories
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -18,11 +18,11 @@ function createWindow() {
       nodeIntegration: false,
     },
     backgroundColor: '#1e1e1e',
-    title: `siftcode — ${currentDir}`,
+    title: 'siftcode',
   });
 
-  ipcMain.on('update-title', (_event, dir) => {
-    mainWindow.setTitle(`siftcode — ${dir}`);
+  ipcMain.on('update-title', (_event, title) => {
+    mainWindow.setTitle(title);
   });
 
   const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
@@ -35,27 +35,24 @@ function createWindow() {
   }
 }
 
-// ── Git IPC Handlers ──
+// ── Helpers ──
 
-ipcMain.handle('git:getCurrentDir', () => currentDir);
-
-ipcMain.handle('git:getDiff', () => {
+function getDiffForDir(dir) {
   let diff = '';
   try {
     diff = execSync('git diff', {
-      encoding: 'utf8', cwd: currentDir, maxBuffer: 50 * 1024 * 1024,
+      encoding: 'utf8', cwd: dir, maxBuffer: 50 * 1024 * 1024,
     });
   } catch {}
 
-  // Include untracked files
   try {
     const untracked = execSync('git ls-files --others --exclude-standard', {
-      encoding: 'utf8', cwd: currentDir,
+      encoding: 'utf8', cwd: dir,
     }).trim();
     if (untracked) {
       for (const filePath of untracked.split('\n')) {
         try {
-          const fullPath = path.resolve(currentDir, filePath);
+          const fullPath = path.resolve(dir, filePath);
           const content = fs.readFileSync(fullPath, 'utf8');
           const lines = content.split('\n');
           diff += `\ndiff --git a/${filePath} b/${filePath}\nnew file mode 100644\n--- /dev/null\n+++ b/${filePath}\n@@ -0,0 +1,${lines.length} @@\n`;
@@ -66,21 +63,40 @@ ipcMain.handle('git:getDiff', () => {
   } catch {}
 
   return diff;
+}
+
+// ── Git IPC Handlers ──
+
+ipcMain.handle('git:getDirectories', () => directories);
+
+ipcMain.handle('git:getDiffs', () => {
+  const results = [];
+  for (const dir of directories) {
+    const diff = getDiffForDir(dir);
+    if (diff.trim()) {
+      results.push({
+        repoRoot: dir,
+        repoName: path.basename(dir),
+        diff,
+      });
+    }
+  }
+  return results;
 });
 
-ipcMain.handle('git:getOriginal', (_event, filePath) => {
+ipcMain.handle('git:getOriginal', (_event, { filePath, repoRoot }) => {
   try {
     return execSync(`git show HEAD:${filePath}`, {
-      encoding: 'utf8', cwd: currentDir, maxBuffer: 50 * 1024 * 1024,
+      encoding: 'utf8', cwd: repoRoot, maxBuffer: 50 * 1024 * 1024,
     });
   } catch {
     return '';
   }
 });
 
-ipcMain.handle('git:applyFile', (_event, { filePath, content }) => {
+ipcMain.handle('git:applyFile', (_event, { filePath, content, repoRoot }) => {
   try {
-    const fullPath = path.resolve(currentDir, filePath);
+    const fullPath = path.resolve(repoRoot, filePath);
     fs.writeFileSync(fullPath, content);
     return { success: true };
   } catch (err) {
@@ -88,15 +104,23 @@ ipcMain.handle('git:applyFile', (_event, { filePath, content }) => {
   }
 });
 
-ipcMain.handle('dialog:openFolder', async () => {
+ipcMain.handle('dialog:addFolder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory'],
   });
   if (!result.canceled && result.filePaths.length > 0) {
-    currentDir = result.filePaths[0];
-    return currentDir;
+    const dir = result.filePaths[0];
+    if (!directories.includes(dir)) {
+      directories.push(dir);
+    }
+    return dir;
   }
   return null;
+});
+
+ipcMain.handle('git:removeFolder', (_event, dir) => {
+  directories = directories.filter(d => d !== dir);
+  return directories;
 });
 
 // ── App Lifecycle ──

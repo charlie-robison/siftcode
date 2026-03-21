@@ -10,19 +10,19 @@ export default function App() {
   const [selectedFile, setSelectedFile] = useState(0);
   const [decisions, setDecisions] = useState({});
   const [originals, setOriginals] = useState({});
-  const [currentDir, setCurrentDir] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [totalActions, setTotalActions] = useState(0);
   const [dismissedFiles, setDismissedFiles] = useState(new Set());
+  const [directories, setDirectories] = useState([]);
 
-  const loadDiff = useCallback(async () => {
+  const loadDiffs = useCallback(async () => {
     setLoading(true);
-    const dir = await window.siftcode.getCurrentDir();
-    setCurrentDir(dir);
-    window.siftcode.updateTitle(dir);
 
-    const raw = await window.siftcode.getDiff();
-    if (!raw.trim()) {
+    const repoResults = await window.siftcode.getDiffs();
+    const dirs = await window.siftcode.getDirectories();
+    setDirectories(dirs);
+
+    if (!repoResults || repoResults.length === 0) {
       setFiles([]);
       setTotalActions(0);
       setDecisions({});
@@ -31,34 +31,57 @@ export default function App() {
       return;
     }
 
-    const { files: parsed, totalActions: total } = parseDiff(raw);
+    let allFiles = [];
+    let actionOffset = 0;
+
+    for (const repo of repoResults) {
+      const { files: parsed, totalActions: repoActions } = parseDiff(repo.diff, actionOffset);
+      for (const file of parsed) {
+        file.repoRoot = repo.repoRoot;
+        file.repoName = repo.repoName;
+      }
+      allFiles = allFiles.concat(parsed);
+      actionOffset += repoActions;
+    }
 
     const decs = {};
-    for (let i = 0; i < total; i++) {
+    for (let i = 0; i < actionOffset; i++) {
       decs[i] = 'accept';
     }
     setDecisions(decs);
-    setTotalActions(total);
+    setTotalActions(actionOffset);
     setDismissedFiles(new Set());
 
     const origs = {};
-    for (const file of parsed) {
-      origs[file.path] = await window.siftcode.getOriginal(file.path);
+    for (const file of allFiles) {
+      const key = `${file.repoRoot}:${file.path}`;
+      origs[key] = await window.siftcode.getOriginal(file.path, file.repoRoot);
     }
     setOriginals(origs);
 
-    setFiles(parsed);
+    setFiles(allFiles);
     setSelectedFile(0);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    loadDiff();
-  }, [loadDiff]);
+    loadDiffs();
+  }, [loadDiffs]);
 
-  const visibleFiles = files.filter(f => !dismissedFiles.has(f.path));
+  const fileKey = (f) => `${f.repoRoot}:${f.path}`;
+  const visibleFiles = files.filter(f => !dismissedFiles.has(fileKey(f)));
   const currentFile = visibleFiles[selectedFile] || null;
-  const currentOriginal = currentFile ? originals[currentFile.path] || '' : '';
+  const currentOriginal = currentFile ? originals[fileKey(currentFile)] || '' : '';
+
+  // Group visible files by repo
+  const repoGroups = [];
+  const seen = new Set();
+  for (const f of visibleFiles) {
+    if (!seen.has(f.repoRoot)) {
+      seen.add(f.repoRoot);
+      repoGroups.push({ repoRoot: f.repoRoot, repoName: f.repoName });
+    }
+  }
 
   function toggleLine(actionIndex) {
     setDecisions(prev => ({
@@ -94,7 +117,7 @@ export default function App() {
       }
       return next;
     });
-    dismissFile(currentFile.path);
+    dismissFile(currentFile);
   }
 
   function rejectFileAndDismiss() {
@@ -108,16 +131,17 @@ export default function App() {
       }
       return next;
     });
-    dismissFile(currentFile.path);
+    dismissFile(currentFile);
   }
 
-  function dismissFile(filePath) {
+  function dismissFile(file) {
+    const key = fileKey(file);
     setDismissedFiles(prev => {
       const next = new Set(prev);
-      next.add(filePath);
+      next.add(key);
       return next;
     });
-    const remaining = visibleFiles.filter(f => f.path !== filePath);
+    const remaining = visibleFiles.filter(f => fileKey(f) !== key);
     if (remaining.length === 0) {
       setSelectedFile(0);
     } else if (selectedFile >= remaining.length) {
@@ -131,30 +155,23 @@ export default function App() {
 
   async function apply() {
     for (const file of files) {
-      const original = originals[file.path] || '';
+      const original = originals[fileKey(file)] || '';
       const content = reconstructFile(original, file.hunks, decisions);
-      await window.siftcode.applyFile(file.path, content);
+      await window.siftcode.applyFile(file.path, content, file.repoRoot);
     }
-    await loadDiff();
+    await loadDiffs();
   }
 
-  async function openFolder() {
-    const dir = await window.siftcode.openFolder();
+  async function addFolder() {
+    const dir = await window.siftcode.addFolder();
     if (dir) {
-      setCurrentDir(dir);
-      await loadDiff();
+      await loadDiffs();
     }
   }
 
-  function closeFolder() {
-    setFiles([]);
-    setDecisions({});
-    setOriginals({});
-    setTotalActions(0);
-    setDismissedFiles(new Set());
-    setSelectedFile(0);
-    setCurrentDir('');
-    window.siftcode.updateTitle('siftcode');
+  async function removeFolder(repoRoot) {
+    await window.siftcode.removeFolder(repoRoot);
+    await loadDiffs();
   }
 
   let accepted = 0, rejected = 0;
@@ -163,30 +180,41 @@ export default function App() {
     else if (val === 'reject') rejected++;
   }
 
+  const hasDirectories = directories.length > 0;
+
   return (
     <div className="app">
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <h1>siftcode</h1>
-          <span className="dir-path" title={currentDir}>{currentDir}</span>
         </div>
         <div className="header-actions">
-          <button className="btn btn-open" onClick={openFolder}>Open Folder</button>
-          <button className="btn btn-open" onClick={loadDiff}>Refresh</button>
+          <button className="btn btn-open" onClick={addFolder}>Add Folder</button>
+          <button className="btn btn-open" onClick={loadDiffs}>Refresh</button>
         </div>
       </header>
 
       <div className="app-body">
         {loading ? (
           <div className="loading">Loading changes...</div>
+        ) : !hasDirectories ? (
+          <div className="empty-state">
+            <h2>No folders open</h2>
+            <p>
+              Add a project folder to start reviewing AI-generated code changes line by line.
+            </p>
+            <button className="btn" onClick={addFolder}>Add a project folder</button>
+          </div>
         ) : files.length === 0 ? (
           <div className="empty-state">
             <h2>No changes to review</h2>
             <p>
-              Run your AI coding agent, then come back here to review changes
-              line by line before they hit your codebase.
+              Run your AI coding agent, then click Refresh to review changes.
             </p>
-            <button className="btn" onClick={openFolder}>Open a project folder</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn" onClick={addFolder}>Add another folder</button>
+              <button className="btn" onClick={loadDiffs}>Refresh</button>
+            </div>
           </div>
         ) : visibleFiles.length === 0 ? (
           <div className="empty-state">
@@ -201,14 +229,15 @@ export default function App() {
           <>
             <FileList
               files={visibleFiles}
+              repoGroups={repoGroups}
               decisions={decisions}
               selectedIndex={selectedFile}
               onSelect={setSelectedFile}
-              repoDir={currentDir}
               dismissedCount={dismissedFiles.size}
               onUndismiss={undismissAll}
-              onDismiss={(filePath) => dismissFile(filePath)}
-              onCloseFolder={closeFolder}
+              onDismiss={(file) => dismissFile(file)}
+              onRemoveFolder={removeFolder}
+              onAddFolder={addFolder}
             />
             <div className="editor-area">
               <DiffView

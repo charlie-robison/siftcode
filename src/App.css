@@ -143,6 +143,28 @@
   color: #888;
 }
 
+.repo-group-close {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-left: 2px;
+}
+
+.repo-group-header:hover .repo-group-close {
+  opacity: 1;
+}
+
+.repo-group-close:hover {
+  color: #f44336;
+  background: #3a1b1b;
+}
+
 .file-item-nested {
   padding-left: 24px;
 }
