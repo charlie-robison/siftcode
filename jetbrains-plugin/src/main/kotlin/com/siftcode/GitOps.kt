@@ -9,7 +9,7 @@ object GitOps {
 
     fun getDiff(project: Project): String {
         val basePath = project.basePath ?: return ""
-        var diff = runGit(basePath, "git", "diff") ?: ""
+        var diff = runGit(basePath, "git", "diff", "HEAD") ?: ""
 
         // Include untracked files as synthetic diffs
         val untracked = runGit(basePath, "git", "ls-files", "--others", "--exclude-standard")
